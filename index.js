@@ -33,13 +33,18 @@ loadModel('treeDecorated.obj', 'treeDecorated.mtl', (obj) => {
 });
 
 loadModel('trainLocomotive.obj', 'trainLocomotive.mtl', (obj) => {
-  obj.scale.multiplyScalar(1);
+  obj.scale.multiplyScalar(2);
   obj.name = 'train';
   obj.userData.angle = 0;
-
+  obj.traverse((child) => {
+    if (child.isMesh) {
+      child.castShadow = true;
+      child.receiveShadow = true;
+    }
+  });
   obj.userData.update = (elapsedTime) => {
     obj.position.y = 0;
-    obj.userData.angle += 40 * elapsedTime;
+    obj.userData.angle += 50 * elapsedTime;
     obj.position.x = Math.cos(obj.userData.angle * rad) * 27;
     obj.position.z = Math.sin(obj.userData.angle * rad) * -27;
     obj.rotation.y = Math.PI / 2 + obj.userData.angle * rad;
@@ -49,83 +54,98 @@ loadModel('trainLocomotive.obj', 'trainLocomotive.mtl', (obj) => {
 
 loadModel('presentGreen.obj', 'presentGreen.mtl', (obj) => {
   for (let i = 0; i < 100; i++) {
-    obj.children.forEach((child) => {
-      const geo = child.geometry;
-      const mat = child.material;
-      const mesh = new THREE.Mesh(geo, mat);
-      mesh.position.randomDirection().multiplyScalar(20);
-      mesh.position.y = 0;
-      scene.add(mesh);
+    const position = new THREE.Vector3().randomDirection().multiplyScalar(25);
+    obj.traverse((child) => {
+      if (child.isMesh) {
+        const geo = child.geometry;
+        const mat = child.material;
+        const mesh = new THREE.Mesh(geo, mat);
+        mesh.castShadow = true;
+        mesh.receiveShadow = true;
+        mesh.position.set(position.x, 0, position.z);
+        scene.add(mesh);
+      }
     });
   }
 });
 
 loadModel('rockFormationLarge.obj', 'rockFormationLarge.mtl', (obj) => {
-  for (let i = 0; i < 30; i++) {
-    obj.children.forEach((child) => {
-      const geo = child.geometry;
-      const mat = child.material;
-      const mesh = new THREE.Mesh(geo, mat);
-      mesh.position.randomDirection().multiplyScalar(25);
-      mesh.position.y = 0;
-      scene.add(mesh);
+  for (let i = 0; i < 50; i++) {
+    const position = new THREE.Vector3().randomDirection().multiplyScalar(25);
+    obj.traverse((child) => {
+      if (child.isMesh) {
+        const geo = child.geometry;
+        const mat = child.material;
+        const mesh = new THREE.Mesh(geo, mat);
+        mesh.castShadow = true;
+        mesh.receiveShadow = true;
+        mesh.position.set(position.x, 0, position.z);
+        scene.add(mesh);
+      }
     });
   }
 });
 
 loadModel('treePineSnow.obj', 'treePineSnow.mtl', (obj) => {
-  for (let i = 0; i < 200; i++) {
-    obj.children.forEach((child) => {
-      const geo = child.geometry;
-      const mat = child.material;
-      const mesh = new THREE.Mesh(geo, mat);
-
-      mesh.position.randomDirection().multiplyScalar(25);
-      mesh.position.y = 0;
-      scene.add(mesh);
+  for (let i = 0; i < 100; i++) {
+    const position = new THREE.Vector3().randomDirection().multiplyScalar(25);
+    obj.traverse((child) => {
+      if (child.isMesh) {
+        const geo = child.geometry;
+        const mat = child.material;
+        const mesh = new THREE.Mesh(geo, mat);
+        mesh.castShadow = true;
+        mesh.receiveShadow = true;
+        mesh.position.set(position.x, 0, position.z);
+        scene.add(mesh);
+      }
     });
   }
 });
 
 loadModel('snowPatch.obj', 'snowPatch.mtl', (obj) => {
   for (let i = 0; i < 200; i++) {
-    obj.children.forEach((child) => {
-      const geo = child.geometry;
-      const mat = child.material;
-      const mesh = new THREE.Mesh(geo, mat);
-
-      mesh.position.randomDirection().multiplyScalar(25);
-      mesh.position.y = 0;
-      scene.add(mesh);
+    const position = new THREE.Vector3().randomDirection().multiplyScalar(25);
+    obj.traverse((child) => {
+      if (child.isMesh) {
+        const geo = child.geometry;
+        const mat = child.material;
+        const mesh = new THREE.Mesh(geo, mat);
+        mesh.castShadow = true;
+        mesh.receiveShadow = true;
+        mesh.position.set(position.x, 0, position.z);
+        scene.add(mesh);
+      }
     });
   }
 });
 
 loadModel('snowmanFancy.obj', 'snowmanFancy.mtl', (obj) => {
-  for (let i = 0; i < 200; i++) {
-    obj.children.forEach((child) => {
-      const geo = child.geometry;
-      const mat = child.material;
-      const mesh = new THREE.Mesh(geo, mat);
-
-      mesh.position.randomDirection().multiplyScalar(25);
-      mesh.position.y = 0;
-      mesh.name = 'snowman';
-
-      mesh.userData.direction = 1;
-      mesh.userData.update = (elapsedTime) => {
-        mesh.rotation.y += mesh.userData.direction * 2 * elapsedTime;
-        if (Math.abs(mesh.rotation.y) > Math.PI / 4) {
-          mesh.userData.direction = -mesh.userData.direction;
-        }
-      };
-      scene.add(mesh);
+  for (let i = 0; i < 100; i++) {
+    const position = new THREE.Vector3().randomDirection().multiplyScalar(25);
+    obj.traverse((child) => {
+      if (child.isMesh) {
+        const geo = child.geometry;
+        const mat = child.material;
+        const mesh = new THREE.Mesh(geo, mat);
+        mesh.castShadow = true;
+        mesh.receiveShadow = true;
+        mesh.position.set(position.x, 0, position.z);
+        mesh.name = 'snowman';
+        mesh.userData.angle = 1;
+        mesh.userData.update = (elapsedTime) => {
+          mesh.userData.angle += 300 * elapsedTime;
+          mesh.rotation.z = Math.cos(mesh.userData.angle * rad) / 4;
+          mesh.rotation.y = Math.cos(mesh.userData.angle * rad) / 4;
+        };
+        scene.add(mesh);
+      }
     });
   }
 });
 
 const scene = new THREE.Scene();
-scene.fog = new THREE.Fog(0xffffff, 2, 50);
+scene.fog = new THREE.Fog(0xffffff, 10, 75);
 const camera = new THREE.PerspectiveCamera(
   75,
   window.innerWidth / window.innerHeight,
@@ -133,22 +153,25 @@ const camera = new THREE.PerspectiveCamera(
   1000
 );
 
-const planeGeometry = new THREE.CircleGeometry(28, 100);
-const planeMaterial = new THREE.MeshStandardMaterial({ color: 0xaaaaaa });
+const planeGeometry = new THREE.CircleGeometry(28);
+const planeMaterial = new THREE.MeshStandardMaterial({
+  color: 0x9bb6bd,
+  side: THREE.DoubleSide,
+});
 const plane = new THREE.Mesh(planeGeometry, planeMaterial);
 plane.receiveShadow = true;
 plane.rotateX(Math.PI / -2);
 scene.add(plane);
 
-const li = new THREE.DirectionalLight(0xffffff, 2);
-li.position.y = 2;
-li.position.x = 0;
-li.position.z = 0;
-li.castShadow = true;
-scene.add(li);
+const directionalLight = new THREE.DirectionalLight(0xffffff, 2);
+directionalLight.position.set(2, 2, 2);
+directionalLight.castShadow = true;
+directionalLight.shadow.camera.near = 0.1;
+directionalLight.shadow.camera.far = 25;
+scene.add(directionalLight);
 
-const hl = new THREE.HemisphereLight(0x000088, 0x000000, 1);
-scene.add(hl);
+const hemisphereLight = new THREE.HemisphereLight(0x000088, 0x000000, 1);
+scene.add(hemisphereLight);
 
 camera.position.z = 25;
 camera.position.y = 2;
@@ -157,14 +180,20 @@ const renderer = new THREE.WebGLRenderer({ alpha: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-renderer.outputColorSpace = THREE.SRGBColorSpace;
 
 document.body.appendChild(renderer.domElement);
 
 for (let i = 0; i < 1000; i++) {
   const geo = new THREE.SphereGeometry(Math.random() * 0.3);
-  const mat = new THREE.MeshStandardMaterial({ color: 0xffffff });
+  const mat = new THREE.MeshStandardMaterial({
+    color: 0xffffff,
+    transparent: true,
+    opacity: 0.8,
+  });
   const mesh = new THREE.Mesh(geo, mat);
+  mesh.castShadow = true;
+  mesh.receiveShadow = true;
+
   const initial = new THREE.Vector3().random().multiplyScalar(50).subScalar(25);
   initial.y += 100;
   mesh.position.set(initial.x, initial.y, initial.z);
@@ -176,7 +205,7 @@ for (let i = 0; i < 1000; i++) {
         ? -mesh.userData.velocity.y
         : mesh.userData.velocity.y;
     mesh.position.add(mesh.userData.velocity);
-    if (mesh.position.y < -50) {
+    if (mesh.position.y < -2) {
       mesh.position.set(
         mesh.userData.initial.x,
         mesh.userData.initial.y,
