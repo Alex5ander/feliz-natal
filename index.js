@@ -161,7 +161,7 @@ renderer.outputColorSpace = THREE.SRGBColorSpace;
 
 document.body.appendChild(renderer.domElement);
 
-for (let i = 0; i < 2000; i++) {
+for (let i = 0; i < 1000; i++) {
   const geo = new THREE.SphereGeometry(Math.random() * 0.3);
   const mat = new THREE.MeshStandardMaterial({ color: 0xffffff });
   const mesh = new THREE.Mesh(geo, mat);
