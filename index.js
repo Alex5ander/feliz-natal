@@ -21,6 +21,22 @@ function loadModel(model, mtl, callback) {
   });
 }
 
+const renderer = new THREE.WebGLRenderer({ alpha: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+const scene = new THREE.Scene();
+THREE.ShaderChunk.fog_fragment;
+scene.fog = new THREE.FogExp2(0xffffff, 0.04);
+
+const camera = new THREE.PerspectiveCamera(
+  75,
+  window.innerWidth / window.innerHeight,
+  0.1,
+  1000
+);
+
 loadModel('treeDecorated.obj', 'treeDecorated.mtl', (obj) => {
   obj.position.y = 0.25;
   obj.traverse((child) => {
@@ -59,6 +75,28 @@ loadModel('trainLocomotive.obj', 'trainLocomotive.mtl', (obj) => {
   }
 });
 
+loadModel('treePineSnow.obj', 'treePineSnow.mtl', (obj) => {
+  for (let i = 0; i < 50; i++) {
+    obj.traverse((child) => {
+      if (child.isMesh) {
+        const geo = child.geometry;
+        const mat = child.material;
+        const mesh = new THREE.Mesh(geo, mat);
+        mesh.castShadow = true;
+        mesh.receiveShadow = true;
+        mesh.position.randomDirection().multiply(new THREE.Vector3(15, 0, 15));
+        mesh.position.x =
+          Math.abs(mesh.position.x) < 3
+            ? mesh.position.x > 0
+              ? 4
+              : -4
+            : mesh.position.x;
+        scene.add(mesh);
+      }
+    });
+  }
+});
+
 loadModel('presentGreen.obj', 'presentGreen.mtl', (obj) => {
   for (let i = 0; i < 10; i++) {
     const position = new THREE.Vector3().randomDirection().multiplyScalar(1.5);
@@ -75,15 +113,6 @@ loadModel('presentGreen.obj', 'presentGreen.mtl', (obj) => {
     });
   }
 });
-
-const scene = new THREE.Scene();
-scene.fog = new THREE.Fog(0xffffff, 1, 1000);
-const camera = new THREE.PerspectiveCamera(
-  75,
-  window.innerWidth / window.innerHeight,
-  0.1,
-  1000
-);
 
 const sphereGeo = new THREE.SphereGeometry(
   2,
@@ -108,7 +137,7 @@ sphereMesh.position.y = 1.1;
 scene.add(sphereMesh);
 
 const baseGeo = new THREE.CylinderGeometry(2.1, 2.2, 0.25, 64);
-const baseMat = new THREE.MeshStandardMaterial({ color: 0xffff00 });
+const baseMat = new THREE.MeshPhongMaterial({ color: 0xffff00 });
 const baseMesh = new THREE.Mesh(baseGeo, baseMat);
 baseMesh.castShadow = true;
 baseMesh.receiveShadow = true;
@@ -116,20 +145,23 @@ baseMesh.position.y = 0.125;
 scene.add(baseMesh);
 
 const groundGeo = new THREE.PlaneGeometry(32, 32);
-const groundMat = new THREE.MeshPhysicalMaterial({ color: 0xffffff });
+const groundMat = new THREE.MeshPhongMaterial({
+  color: 0xffffff,
+  side: THREE.DoubleSide,
+});
 const groundMesh = new THREE.Mesh(groundGeo, groundMat);
 groundMesh.receiveShadow = true;
 groundMesh.rotation.x = Math.PI / -2;
 scene.add(groundMesh);
 
-const directionalLight = new THREE.DirectionalLight(0xffffff, 2);
+const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
 directionalLight.position.set(2, 2, 2);
 directionalLight.castShadow = true;
 directionalLight.shadow.bias = 0.001;
 directionalLight.shadow.camera.near = 0.1;
 directionalLight.shadow.camera.far = 25;
-directionalLight.shadow.mapSize.width = 1024;
-directionalLight.shadow.mapSize.height = 1024;
+directionalLight.shadow.mapSize.width = 512;
+directionalLight.shadow.mapSize.height = 512;
 scene.add(directionalLight);
 
 const hemisphereLight = new THREE.HemisphereLight(0x000088, 0x000000, 1);
@@ -141,39 +173,27 @@ scene.add(ambientLight);
 camera.position.z = 10;
 camera.position.y = 2;
 
-const renderer = new THREE.WebGLRenderer({ alpha: true });
-renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.shadowMap.enabled = true;
-renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-
 document.body.appendChild(renderer.domElement);
 
-for (let i = 0; i < 300; i++) {
-  const radius = Math.random() * 0.03;
+for (let i = 0; i < 1000; i++) {
+  const radius = Math.random() * 0.04;
   const geo = new THREE.IcosahedronGeometry(radius, 0);
-  const mat = new THREE.MeshPhysicalMaterial({
+
+  const mat = new THREE.MeshPhongMaterial({
     color: 0xffffff,
-    roughness: 0,
-    clearcoat: 1,
-    sheenRoughness: 0,
-    reflectivity: 1,
   });
   const mesh = new THREE.Mesh(geo, mat);
   mesh.castShadow = true;
   mesh.receiveShadow = true;
 
-  const randomVec3 = () => {
-    const vec3 = new THREE.Vector3()
-      .randomDirection()
-      .multiply(new THREE.Vector3(1.5, 3, 1.5));
-    vec3.y = Math.abs(vec3.y);
-    return vec3;
-  };
-  mesh.position.copy(randomVec3());
+  mesh.userData.radius = radius;
   mesh.userData.update = (delta) => {
-    mesh.position.y -= delta * radius * 50;
+    mesh.position.y -= delta * mesh.userData.radius * 50;
+    mesh.position.x += delta * mesh.userData.radius * Math.random() * 50;
     if (mesh.position.y < radius) {
-      mesh.position.copy(randomVec3());
+      mesh.position.randomDirection().multiply(new THREE.Vector3(15, 15, 15));
+      mesh.position.y = Math.abs(mesh.position.y);
+      mesh.userData.radius = Math.random() * 0.04;
     }
   };
   scene.add(mesh);
@@ -181,6 +201,7 @@ for (let i = 0; i < 300; i++) {
 
 const clock = new THREE.Clock();
 const orbitControl = new OrbitControls(camera, renderer.domElement);
+
 function animate() {
   requestAnimationFrame(animate);
 
