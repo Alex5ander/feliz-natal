@@ -11,6 +11,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "feliz-natal-2023": "file:",
     "three": "^0.160.0"
   },
   "devDependencies": {
