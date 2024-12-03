@@ -34,7 +34,7 @@ const loadModel = (model, mtl, callback) => {
   });
 }
 
-loadModel('./trainLocomotive.obj', './trainLocomotive.mtl', (obj) => {
+loadModel('../trainLocomotive.obj', '../trainLocomotive.mtl', (obj) => {
   for (let i = 0; i < 10; i++) {
     obj.traverse((child) => {
       if (child.isMesh) {
@@ -63,7 +63,7 @@ loadModel('./trainLocomotive.obj', './trainLocomotive.mtl', (obj) => {
   }
 });
 
-loadModel('./treePineSnow.obj', './treePineSnow.mtl', (obj) => {
+loadModel('../treePineSnow.obj', '../treePineSnow.mtl', (obj) => {
   const count = 50;
   const { geometry, material } = obj.children[0]
   const mesh = new THREE.InstancedMesh(geometry, material, count)
@@ -113,7 +113,7 @@ const createSnowGlobe = () => {
     scene.add(mesh);
   }
 
-  loadModel('./treeDecorated.obj', './treeDecorated.mtl', (obj) => {
+  loadModel('../treeDecorated.obj', '../treeDecorated.mtl', (obj) => {
     obj.position.y = 0.5;
     obj.traverse((child) => {
       child.castShadow = true;
@@ -122,7 +122,7 @@ const createSnowGlobe = () => {
     scene.add(obj);
   });
 
-  loadModel('./presentGreen.obj', './presentGreen.mtl', (obj) => {
+  loadModel('../presentGreen.obj', '../presentGreen.mtl', (obj) => {
     for (let i = 0; i < 10; i++) {
       const position = new THREE.Vector3().randomDirection().multiplyScalar(1.5);
       obj.traverse((child) => {
