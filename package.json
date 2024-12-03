@@ -1,17 +1,20 @@
 {
-  "name": "feliz-natal-2023",
+  "name": "feliz-natal",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "feliz-natal-2023": "file:",
+    "feliz-natal": "file:",
     "three": "^0.160.0"
   },
   "devDependencies": {
