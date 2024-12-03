@@ -6,8 +6,7 @@ export default defineConfig({
     rollupOptions: {
       input: {
         main: './index.html',
-        '2023': './2023/index.html',
-        '2024': './2023/index.html'
+        '2023': './2023/index.html'
       }
     }
   }
