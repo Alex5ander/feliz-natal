@@ -1,7 +1,6 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { MTLLoader } from 'three/addons/loaders/MTLLoader.js';
-import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
+import { GLTFLoader } from 'three/examples/jsm/Addons.js';
 import Stats from 'three/examples/jsm/libs/stats.module.js';
 
 const rad = Math.PI / 180;
@@ -23,64 +22,78 @@ scene.fog = new THREE.Fog(0xffffff, 1, 100);
 
 const orbitControl = new OrbitControls(camera, renderer.domElement);
 
-const loadModel = (model, mtl, callback) => {
-  const loaderMTL = new MTLLoader();
-  const loaderObj = new OBJLoader();
+const loader = new GLTFLoader();
 
-  loaderMTL.load(mtl, (e) => {
-    e.preload();
-    loaderObj.setMaterials(e);
-    loaderObj.load(model, callback);
-  });
-}
+loader.load('../trainset-rail-detailed-bend.glb', t => {
+  for (let i = 0; i < 360; i += 90) {
+    const angle = i * rad;
+    const trail = t.scene.clone();
+    trail.rotation.y = angle;
+    trail.position.z = 3 - Math.sin(Math.PI / -4 + angle) * .707;
+    trail.position.x = 3 + Math.cos(Math.PI / -4 + angle) * .707;
+    scene.add(trail);
+  }
+})
 
-loadModel('../trainLocomotive.obj', '../trainLocomotive.mtl', (obj) => {
-  for (let i = 0; i < 10; i++) {
-    obj.traverse((child) => {
-      if (child.isMesh) {
-        const geo = child.geometry;
-        const mat = child.material;
-        const mesh = new THREE.Mesh(geo, mat);
-        mesh.castShadow = true;
-        mesh.receiveShadow = true;
-
-        mesh.userData.angle = 0;
-        mesh.userData.radius = 2 + (i + 1);
-        mesh.userData.speed = 50 + Math.random() * 50;
-        mesh.userData.update = (elapsedTime) => {
-          mesh.position.y = 0;
-          mesh.userData.angle += mesh.userData.speed * elapsedTime;
-          mesh.position.x =
-            Math.cos(mesh.userData.angle * rad) * mesh.userData.radius;
-          mesh.position.z =
-            Math.sin(mesh.userData.angle * rad) * -mesh.userData.radius;
-          mesh.rotation.y = Math.PI / 2 + mesh.userData.angle * rad;
-        };
-
-        scene.add(mesh);
-      }
+loader.load('../train-locomotive.glb', (obj) => {
+  for (let i = 0; i < 4; i++) {
+    const clone = obj.scene.clone();
+    clone.traverse((child) => {
+      child.castShadow = true;
+      child.receiveShadow = true;
     });
+
+    const radius = 0.707;
+
+    let angle = (i * -90) * rad;
+
+    clone.userData.update = (elapsedTime) => {
+      angle += 2 * elapsedTime;
+      const { x, y, z } = new THREE.Vector3(3 + Math.cos(angle) * radius, 0, 3 + Math.sin(angle) * -radius);
+      clone.rotation.y = Math.PI / 2 + angle;
+      clone.position.set(x, y, z);
+    };
+
+    scene.add(clone);
+  }
+
+  for (let i = 0; i < 4; i++) {
+    const clone = obj.scene.clone();
+    clone.traverse((child) => {
+      child.castShadow = true;
+      child.receiveShadow = true;
+    });
+
+    const radius = 3 + i;
+
+    let angle = (i * -90) * rad;
+
+    clone.userData.update = (elapsedTime) => {
+      angle += 2 * elapsedTime;
+      const { x, y, z } = new THREE.Vector3(Math.cos(angle) * radius, 0, Math.sin(angle) * -radius);
+      clone.rotation.y = Math.PI / 2 + angle;
+      clone.position.set(x, y, z);
+    };
+
+    scene.add(clone);
   }
 });
 
-loadModel('../treePineSnow.obj', '../treePineSnow.mtl', (obj) => {
+loader.load('../tree-snow-a.glb', (obj) => {
   const count = 50;
-  const { geometry, material } = obj.children[0]
-  const mesh = new THREE.InstancedMesh(geometry, material, count)
 
   for (let i = 0; i < count; i++) {
-    obj.traverse((child) => {
-      if (child.isMesh) {
-        const matrix = new THREE.Matrix4();
-        matrix.setPosition(randomBetween(-14, 14), 0, randomBetween(-14, 14));
-        mesh.setMatrixAt(i, matrix);
-      }
+    const clone = obj.scene.clone();
+    clone.traverse((child) => {
+      child.castShadow = true;
+      child.receiveShadow = true;
     });
+    const position = new THREE.Vector3().randomDirection().multiplyScalar(14);
+    position.y = 0;
+    const { x, y, z } = position;
+    clone.position.set(x, y, z);
+    scene.add(clone);
   }
-  mesh.castShadow = true;
-  mesh.receiveShadow = true;
-  mesh.instanceMatrix.needsUpdate = true;
-  scene.add(mesh);
 });
 
 const createSnowGlobe = () => {
@@ -113,29 +126,26 @@ const createSnowGlobe = () => {
     scene.add(mesh);
   }
 
-  loadModel('../treeDecorated.obj', '../treeDecorated.mtl', (obj) => {
-    obj.position.y = 0.5;
-    obj.traverse((child) => {
+  loader.load('../tree-decorated-snow.glb', (obj) => {
+    obj.scene.position.y = 0.5;
+    obj.scene.traverse((child) => {
       child.castShadow = true;
       child.receiveShadow = true;
     });
-    scene.add(obj);
+    scene.add(obj.scene);
   });
 
-  loadModel('../presentGreen.obj', '../presentGreen.mtl', (obj) => {
-    for (let i = 0; i < 10; i++) {
-      const position = new THREE.Vector3().randomDirection().multiplyScalar(1.5);
-      obj.traverse((child) => {
-        if (child.isMesh) {
-          const geo = child.geometry;
-          const mat = child.material;
-          const mesh = new THREE.Mesh(geo, mat);
-          mesh.castShadow = true;
-          mesh.receiveShadow = true;
-          mesh.position.set(position.x, 0.5, position.z);
-          scene.add(mesh);
-        }
-      });
+  const radius = 3;
+  loader.load('../present-a-cube.glb', (obj) => {
+    for (let i = 1; i <= 10; i++) {
+      const angle = i * (360 / 10) * rad;
+      const clone = obj.scene.clone();
+      clone.traverse((child) => {
+        child.castShadow = true;
+        child.receiveShadow = true;
+      })
+      clone.position.set(Math.cos(angle) * radius, 0, Math.sin(angle) * radius);
+      scene.add(clone);
     }
   });
 }
@@ -151,13 +161,13 @@ const createFloor = () => {
 
 const setupLight = () => {
 
-  const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+  const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
 
   const shadowCameraSize = 32;
 
   directionalLight.position.set(0, 32, -32);
   directionalLight.castShadow = true;
-  directionalLight.shadow.bias = 0.00001;
+  directionalLight.shadow.bias = -0.0001;
   directionalLight.shadow.camera.near = 0.01;
   directionalLight.shadow.camera.far = 1000;
   directionalLight.shadow.camera.left = -shadowCameraSize;
@@ -170,7 +180,7 @@ const setupLight = () => {
   // const cameraHelper = new THREE.CameraHelper(directionalLight.shadow.camera);
   // scene.add(cameraHelper);
 
-  const ambientLight = new THREE.AmbientLight(0x0000ff);
+  const ambientLight = new THREE.AmbientLight(0x0000ff, 0.2);
   scene.add(ambientLight);
 }
 
@@ -178,8 +188,6 @@ camera.position.z = 10;
 camera.position.y = 2;
 
 const createSnowFlakes = () => {
-  const min = -16;
-  const max = 16;
   const count = 1000;
 
   const geometry = new THREE.IcosahedronGeometry(1, 0);
@@ -190,7 +198,8 @@ const createSnowFlakes = () => {
 
   for (let i = 0; i < count; i++) {
     const radius = Math.random() * 0.05;
-    const coords = [randomBetween(min, max), randomBetween(0, 50), randomBetween(min, max)];
+    const coords = new THREE.Vector3().randomDirection().multiplyScalar(16);
+    coords.y = Math.abs(coords.y);
     const matrix = new THREE.Matrix4();
     matrix.scale(new THREE.Vector3(radius, radius, radius))
     matrix.setPosition(new THREE.Vector3(...coords));
@@ -212,7 +221,8 @@ const createSnowFlakes = () => {
       position.y -= delta * scale.x * 250;
       position.z += delta * randomBetween(-2, 2);
 
-      const coords = [randomBetween(min, max), randomBetween(20, 50), randomBetween(min, max)];
+      const coords = new THREE.Vector3().randomDirection().multiplyScalar(16);
+      coords.y = Math.abs(coords.y);
       if (position.y + scale.y / 2 < 0) {
         position.set(...coords);
       }
