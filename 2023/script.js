@@ -2,22 +2,19 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/examples/jsm/Addons.js';
 import Stats from 'three/examples/jsm/libs/stats.module.js';
+import { scene, camera, renderer } from '../setup';
 
 const rad = Math.PI / 180;
 const randomBetween = (min, max) => min + Math.round((max - min) * Math.random());
 const clock = new THREE.Clock();
-const camera = new THREE.PerspectiveCamera(
-  75,
-  window.innerWidth / window.innerHeight,
-  0.1,
-  1000
-);
-const renderer = new THREE.WebGLRenderer({ alpha: true });
+
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
-const scene = new THREE.Scene();
+camera.position.z = 10;
+camera.position.y = 2;
+
 scene.fog = new THREE.Fog(0xffffff, 1, 100);
 
 const orbitControl = new OrbitControls(camera, renderer.domElement);
@@ -184,20 +181,18 @@ const setupLight = () => {
   scene.add(ambientLight);
 }
 
-camera.position.z = 10;
-camera.position.y = 2;
+let snowA = await loader.loadAsync('../snowflake-a.glb');
+let snowB = await loader.loadAsync('../snowflake-b.glb');
+let snowC = await loader.loadAsync('../snowflake-c.glb');
 
-const createSnowFlakes = () => {
-  const count = 1000;
-
-  const geometry = new THREE.IcosahedronGeometry(1, 0);
-  const material = new THREE.MeshPhysicalMaterial({ color: 0xffffff, roughness: 0, metalness: 0, reflectivity: 2, transmission: 2, ior: 2 });
+const createSnowFlakes = (geometry, material) => {
+  const count = 200;
   const mesh = new THREE.InstancedMesh(geometry, material, count);
   mesh.castShadow = true;
   mesh.receiveShadow = true;
 
   for (let i = 0; i < count; i++) {
-    const radius = Math.random() * 0.05;
+    const radius = Math.random();
     const coords = new THREE.Vector3().randomDirection().multiplyScalar(16);
     coords.y = Math.abs(coords.y);
     const matrix = new THREE.Matrix4();
@@ -212,24 +207,22 @@ const createSnowFlakes = () => {
     for (let i = 0; i < count; i++) {
       const matrix = new THREE.Matrix4();
       mesh.getMatrixAt(i, matrix);
-      const position = new THREE.Vector3();
-      const rotation = new THREE.Quaternion();
-      const scale = new THREE.Vector3();
-      matrix.decompose(position, rotation, scale);
+      const dummy = new THREE.Object3D();
+      matrix.decompose(dummy.position, dummy.rotation, dummy.scale);
 
-      position.x += delta * randomBetween(-2, 2);
-      position.y -= delta * scale.x * 250;
-      position.z += delta * randomBetween(-2, 2);
+      dummy.position.x += delta * randomBetween(-2, 2);
+      dummy.position.y -= delta * dummy.scale.x * 2;
+      dummy.position.z += delta * randomBetween(-2, 2);
+      dummy.rotateY(Math.random() * .1)
 
       const coords = new THREE.Vector3().randomDirection().multiplyScalar(16);
       coords.y = Math.abs(coords.y);
-      if (position.y + scale.y / 2 < 0) {
-        position.set(...coords);
+      if (dummy.position.y - dummy.scale.y / 2 < 0) {
+        dummy.position.set(...coords);
       }
-      matrix.setPosition(position);
-      mesh.setMatrixAt(i, matrix);
+      dummy.updateMatrix()
+      mesh.setMatrixAt(i, dummy.matrix);
     }
-
     mesh.instanceMatrix.needsUpdate = true;
   }
 }
@@ -237,7 +230,10 @@ const createSnowFlakes = () => {
 setupLight();
 createFloor();
 createSnowGlobe();
-createSnowFlakes();
+
+createSnowFlakes(snowA.scene.children[0].geometry, snowA.scene.children[0].material);
+createSnowFlakes(snowB.scene.children[0].geometry, snowB.scene.children[0].material);
+createSnowFlakes(snowC.scene.children[0].geometry, snowC.scene.children[0].material);
 
 const stats = new Stats()
 
