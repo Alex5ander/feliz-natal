@@ -78,19 +78,21 @@ loader.load('../train-locomotive.glb', (obj) => {
 
 loader.load('../tree-snow-a.glb', (obj) => {
   const count = 50;
-
+  const min = 2;
+  const mesh = new THREE.InstancedMesh(obj.scene.children[0].geometry, obj.scene.children[0].material, count);
+  mesh.castShadow = true;
+  mesh.receiveShadow = true;
   for (let i = 0; i < count; i++) {
-    const clone = obj.scene.clone();
-    clone.traverse((child) => {
-      child.castShadow = true;
-      child.receiveShadow = true;
-    });
     const position = new THREE.Vector3().randomDirection().multiplyScalar(14);
+    position.x = position.x < min || position.x < -min ? position.x + 3 : position.x;
+    position.z = position.z < min || position.z < -min ? position.z + 3 : position.z;
     position.y = 0;
-    const { x, y, z } = position;
-    clone.position.set(x, y, z);
-    scene.add(clone);
+    const dummy = new THREE.Matrix4();
+    dummy.setPosition(position);
+    mesh.setMatrixAt(i, dummy);
   }
+  mesh.instanceMatrix.needsUpdate = true;
+  scene.add(mesh);
 });
 
 const createSnowGlobe = () => {
@@ -149,7 +151,7 @@ const createSnowGlobe = () => {
 
 const createFloor = () => {
   const geometry = new THREE.PlaneGeometry(32, 32);
-  const material = new THREE.MeshPhongMaterial({ color: 0xffffff });
+  const material = new THREE.MeshPhongMaterial({ color: 0xffffff, side: THREE.DoubleSide });
   const mesh = new THREE.Mesh(geometry, material);
   mesh.receiveShadow = true;
   mesh.rotation.x = Math.PI / -2;
