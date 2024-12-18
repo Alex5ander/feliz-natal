@@ -181,11 +181,7 @@ const setupLight = () => {
   scene.add(ambientLight);
 }
 
-let snowA = await loader.loadAsync('../snowflake-a.glb');
-let snowB = await loader.loadAsync('../snowflake-b.glb');
-let snowC = await loader.loadAsync('../snowflake-c.glb');
-
-const createSnowFlakes = (geometry, material) => {
+const createSnowFlakesMesh = (geometry, material) => {
   const count = 200;
   const mesh = new THREE.InstancedMesh(geometry, material, count);
   mesh.castShadow = true;
@@ -231,9 +227,18 @@ setupLight();
 createFloor();
 createSnowGlobe();
 
-createSnowFlakes(snowA.scene.children[0].geometry, snowA.scene.children[0].material);
-createSnowFlakes(snowB.scene.children[0].geometry, snowB.scene.children[0].material);
-createSnowFlakes(snowC.scene.children[0].geometry, snowC.scene.children[0].material);
+const createSnowFlakes = async () => {
+
+  let snowA = await loader.loadAsync('../snowflake-a.glb');
+  let snowB = await loader.loadAsync('../snowflake-b.glb');
+  let snowC = await loader.loadAsync('../snowflake-c.glb');
+
+  createSnowFlakesMesh(snowA.scene.children[0].geometry, snowA.scene.children[0].material);
+  createSnowFlakesMesh(snowB.scene.children[0].geometry, snowB.scene.children[0].material);
+  createSnowFlakesMesh(snowC.scene.children[0].geometry, snowC.scene.children[0].material);
+}
+
+createSnowFlakes();
 
 const stats = new Stats()
 
