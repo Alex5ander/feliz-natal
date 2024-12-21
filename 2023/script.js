@@ -15,7 +15,7 @@ renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 camera.position.z = 10;
 camera.position.y = 2;
 
-scene.fog = new THREE.Fog(0xffffff, 1, 100);
+scene.fog = new THREE.Fog(0xffffff, .1, 100);
 
 const orbitControl = new OrbitControls(camera, renderer.domElement);
 
@@ -53,39 +53,20 @@ loader.load('../train-locomotive.glb', (obj) => {
 
     scene.add(clone);
   }
-
-  for (let i = 0; i < 4; i++) {
-    const clone = obj.scene.clone();
-    clone.traverse((child) => {
-      child.castShadow = true;
-      child.receiveShadow = true;
-    });
-
-    const radius = 3 + i;
-
-    let angle = (i * -90) * rad;
-
-    clone.userData.update = (elapsedTime) => {
-      angle += 2 * elapsedTime;
-      const { x, y, z } = new THREE.Vector3(Math.cos(angle) * radius, 0, Math.sin(angle) * -radius);
-      clone.rotation.y = Math.PI / 2 + angle;
-      clone.position.set(x, y, z);
-    };
-
-    scene.add(clone);
-  }
 });
 
 loader.load('../tree-snow-a.glb', (obj) => {
   const count = 50;
-  const min = 2;
   const mesh = new THREE.InstancedMesh(obj.scene.children[0].geometry, obj.scene.children[0].material, count);
   mesh.castShadow = true;
   mesh.receiveShadow = true;
   for (let i = 0; i < count; i++) {
-    const position = new THREE.Vector3().randomDirection().multiplyScalar(14);
-    position.x = position.x < min || position.x < -min ? position.x + 3 : position.x;
-    position.z = position.z < min || position.z < -min ? position.z + 3 : position.z;
+    const position = new THREE.Vector3().randomDirection();
+
+    if (Math.abs(position.distanceTo(new THREE.Vector3(0, 0, 0))) < 5) {
+      position.multiplyScalar(15);
+    }
+
     position.y = 0;
     const dummy = new THREE.Matrix4();
     dummy.setPosition(position);
@@ -95,59 +76,27 @@ loader.load('../tree-snow-a.glb', (obj) => {
   scene.add(mesh);
 });
 
-const createSnowGlobe = () => {
-  const geometry = new THREE.SphereGeometry(2, 64, 64, 0, Math.PI * 2, 0, Math.PI / 1.5);
-
-  const material = new THREE.MeshPhysicalMaterial({
-    color: 0xffffff,
-    transmission: 1,
-    thickness: 1,
-    clearcoat: 1,
-    roughness: 0,
-    ior: 2.5,
-    specularIntensity: 1.7,
+loader.load('../tree-decorated-snow.glb', (obj) => {
+  obj.scene.traverse((child) => {
+    child.castShadow = true;
+    child.receiveShadow = true;
   });
+  console.log(obj.scene)
+  scene.add(obj.scene);
+});
 
-  const mesh = new THREE.Mesh(geometry, material);
-  mesh.castShadow = true;
-  mesh.receiveShadow = true;
-  mesh.position.y = 1.5;
-  scene.add(mesh);
-
-  {
-    // create base
-    const geometry = new THREE.CylinderGeometry(2, 2.2, 1);
-    const material = new THREE.MeshStandardMaterial({ color: 0xffff00 });
-    const mesh = new THREE.Mesh(geometry, material);
-    mesh.castShadow = true;
-    mesh.receiveShadow = true;
-    mesh.position.y = 0;
-    scene.add(mesh);
-  }
-
-  loader.load('../tree-decorated-snow.glb', (obj) => {
-    obj.scene.position.y = 0.5;
-    obj.scene.traverse((child) => {
+loader.load('../present-a-cube.glb', (obj) => {
+  for (let i = 1; i <= 10; i++) {
+    const angle = i * (360 / 10) * rad;
+    const clone = obj.scene.clone();
+    clone.traverse((child) => {
       child.castShadow = true;
       child.receiveShadow = true;
-    });
-    scene.add(obj.scene);
-  });
-
-  const radius = 3;
-  loader.load('../present-a-cube.glb', (obj) => {
-    for (let i = 1; i <= 10; i++) {
-      const angle = i * (360 / 10) * rad;
-      const clone = obj.scene.clone();
-      clone.traverse((child) => {
-        child.castShadow = true;
-        child.receiveShadow = true;
-      })
-      clone.position.set(Math.cos(angle) * radius, 0, Math.sin(angle) * radius);
-      scene.add(clone);
-    }
-  });
-}
+    })
+    clone.position.set(Math.cos(angle) * 3, 0, Math.sin(angle) * 3);
+    scene.add(clone);
+  }
+});
 
 const createFloor = () => {
   const geometry = new THREE.PlaneGeometry(32, 32);
@@ -160,7 +109,7 @@ const createFloor = () => {
 
 const setupLight = () => {
 
-  const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+  const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
 
   const shadowCameraSize = 32;
 
@@ -227,20 +176,10 @@ const createSnowFlakesMesh = (geometry, material) => {
 
 setupLight();
 createFloor();
-createSnowGlobe();
 
-const createSnowFlakes = async () => {
-
-  let snowA = await loader.loadAsync('../snowflake-a.glb');
-  let snowB = await loader.loadAsync('../snowflake-b.glb');
-  let snowC = await loader.loadAsync('../snowflake-c.glb');
-
-  createSnowFlakesMesh(snowA.scene.children[0].geometry, snowA.scene.children[0].material);
-  createSnowFlakesMesh(snowB.scene.children[0].geometry, snowB.scene.children[0].material);
-  createSnowFlakesMesh(snowC.scene.children[0].geometry, snowC.scene.children[0].material);
-}
-
-createSnowFlakes();
+loader.load('../snowflake-a.glb', ({ scene }) => createSnowFlakesMesh(scene.children[0].geometry, scene.children[0].material));
+loader.load('../snowflake-b.glb', ({ scene }) => createSnowFlakesMesh(scene.children[0].geometry, scene.children[0].material));
+loader.load('../snowflake-c.glb', ({ scene }) => createSnowFlakesMesh(scene.children[0].geometry, scene.children[0].material));
 
 const stats = new Stats()
 
